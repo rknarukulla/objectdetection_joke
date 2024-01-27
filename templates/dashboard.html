@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Object Detection Dashboard</title>
+    <style>
+        .row {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 20px;
+        }
+        .column {
+            flex: 50%;
+            padding: 10px;
+        }
+        .data, .names {
+            height: 200px;
+            overflow-y: scroll;
+            border: 1px solid #ccc;
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="row" id="video-row">
+        <img src="/video_feed" alt="Video Feed">
+    </div>
+    <div class="row" style="flex-direction: row;">
+        <div class="column data">
+            <h2>Data Feed</h2>
+            <pre id="data-feed"></pre>
+        </div>
+        <div class="column names">
+            <h2>Detected Names</h2>
+            <pre id="object-names"></pre>
+        </div>
+    </div>
+    <script>
+        function fetchData() {
+            fetch('/data_feed')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('data-feed').textContent = JSON.stringify(data, null, 2);
+                });
+            fetch('/names')
+                .then(response => response.json())
+                .then(names => {
+                    document.getElementById('object-names').textContent = JSON.stringify(names, null, 2);
+                });
+        }
+
+        // Fetch data every 2 seconds to update the UI
+        setInterval(fetchData, 2000);
+    </script>
+</body>
+</html>
