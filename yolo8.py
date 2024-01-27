@@ -13,7 +13,6 @@ def get_frame():
     global latest_detection_data
     cap = cv2.VideoCapture(0)
 
-
     while True:
         ret, frame = cap.read()
         if not ret:
@@ -42,10 +41,25 @@ def video_feed():
     # Stream the video with detections
     return Response(get_frame(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
+
 @app.route('/data_feed')
 def data_feed():
     global latest_detection_data
     return jsonify(latest_detection_data)
+
+
+@app.route('/names')
+def objects_info():
+    global latest_detection_data
+    names = {}
+    for obj in latest_detection_data:
+        name = obj["name"]
+        if names.get(name) is None:
+            names[name] = 1
+        else:
+            names[name] += 1
+
+    return jsonify(names)
 
 
 if __name__ == '__main__':
