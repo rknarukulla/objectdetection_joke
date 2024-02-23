@@ -3,11 +3,14 @@ import json
 import cv2
 from flask import Flask, Response, jsonify, render_template
 from ultralytics import YOLO
+from ultralytics import YOLOWorld
 
 # Initialize Flask app and YOLO model
 app = Flask(__name__)
-model = YOLO('yolov8n.pt')  # Load YOLOv8 model
-
+# model= YOLO("yolov8n.pt")
+model = YOLOWorld('yolov8s-world.pt')  # Load YOLOv8 model
+# Define custom classes
+# model.set_classes(["person with phone", "colors"])
 
 def get_frame():
     global latest_detection_data
