@@ -1,20 +1,58 @@
-from transformers import AutoModel, AutoTokenizer
+import os
 
-# Assuming the model is available as a local directory or on the Hugging Face Model Hub
-model_name_or_path = "/Users/ravinarukulla/.cache/lm-studio/models/TheBloke/OpenHermes-2.5-Mistral-7B-GGUF/openhermes-2.5-mistral-7b.Q5_0.gguf"
+from ctransformers import AutoTokenizer
+from langchain_community.llms import CTransformers
+from langchain.agents import AgentOutputParser, initialize_agent
+from langchain.agents.conversational_chat.prompt import FORMAT_INSTRUCTIONS
+from langchain.output_parsers.json import parse_json_markdown
+from langchain.schema import AgentAction, AgentFinish
 
-# Load the tokenizer
-tokenizer = AutoTokenizer.from_pretrained(model_name_or_path)
 
-# Load the model
-model = AutoModel.from_pretrained(model_name_or_path)
+MODEL_PATH = 'path to downloaded .gguf file'
 
-# Example usage
+# Some basic configurations for the model
+config = {
+    "max_new_tokens": 2048,
+    "context_length": 4096,
+    "repetition_penalty": 1.1,
+    "temperature": 0.5,
+    "top_k": 50,
+    "top_p": 0.9,
+    "stream": True,
+    "threads": int(os.cpu_count() / 2)
+}
+
+MODEL_PATH = "llm_model/TheBloke/mistral-7b-instruct-v0.1.Q5_0/mistral-7b-instruct-v0.1.Q5_0.gguf"
+# We use Langchain's CTransformers llm class to load our quantized model
+llm = CTransformers(model=MODEL_PATH,
+                    config=config)
+
+
+
+# Tokenizer for Mistral-7B-Instruct from HuggingFace
+tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH)
+
+
+agent = initialize_agent(
+    agent="chat-conversational-react-description",
+    tools=None,
+    llm=llm,
+    verbose=True,
+    early_stopping_method="generate",
+    memory=memory,
+    agent_kwargs={"output_parser": parser}
+)
+
 def generate_text(prompt):
-    inputs = tokenizer(prompt, return_tensors="pt", max_length=512, truncation=True)
-    output = model.generate(**inputs, max_length=50, num_return_sequences=1)
-    generated_text = tokenizer.decode(output[0], skip_special_tokens=True)
-    return generated_text
+
+    try:
+        response = agent(prompt)
+    except Exception as e:
+        response = str(e)
+        if response.startswith("Could not parse LLM output: `"):
+            response = response.removeprefix("Could not parse LLM output: `").removesuffix("`")
+            print(response)
+
 
 # Replace "Your prompt here" with an actual prompt
 
