@@ -10,22 +10,27 @@ model_path = "llm_model/TheBloke/mistral-7b-instruct-v0.1.Q5_0/mistral-7b-instru
 config = {'max_new_tokens': 100, 'temperature': 0.9}
 llm = CTransformers(model=model_path, model_file="mistral-7b-instruct-v0.1.Q5_0.gguf", config=config)
 
-template0 = """<s>[INST] Imagine you are in a room where you've noticed several items and people around you, 
-. Based on this observation, craft a message that includes a 
-heartfelt wish and a compliment, making sure to incorporate the presence of these items and individuals creatively. 
-Ensure your response is both creative and formal, and do not refer to any process of detection or mention the 
-technical aspect of how you came to know about these items. [/INST] </s>"""
-
-
-template = """<s>[INST] You are a highly creative and articulate assistant with a formal tone. 
-Using the context provided, craft a response that includes a heartfelt wish and a genuine compliment. 
-Ensure your response maintains a balance between creativity and formality, 
-demonstrating respect and thoughtfulness.
+template = """<s>[INST] Imagine you are in a room where you've noticed several items and people around you, 
+Therse observations will be provided as context. Based on this observation, craft a message that answers the question 
+making sure to incorporate the presence of these items and individuals creatively. Ensure your response is both 
+creative and formal, and do not refer to any process of detection or mention the technical aspect of how you came to 
+know about these items. 
 
 Context: {context}
 Question: {question} 
-[/INST] </s>
-"""
+
+[/INST] </s>"""
+
+
+# template = """<s>[INST] You are a highly creative and articulate assistant with a formal tone.
+# Using the context provided, craft a response that includes a heartfelt wish and a genuine compliment.
+# Ensure your response maintains a balance between creativity and formality,
+# demonstrating respect and thoughtfulness.
+#
+# Context: {context}
+# Question: {question}
+# [/INST] </s>
+# """
 
 # Pre-define the prompt template to avoid recreating it on every request
 prompt_template = PromptTemplate(template=template, input_variables=["question", "context"])
@@ -51,3 +56,16 @@ def generate_text():
 
 if __name__ == '__main__':
     app.run(debug=True)
+
+"""
+Example input: 
+
+{ 
+"context": "Observations are given as json where the key is name and value is count of items or persons. The 
+json is {person:3,laptop:1,chair:2}. Use this context as for surrounding environment", 
+
+"question": "Tell a joke to the audience" 
+}
+
+
+"""
