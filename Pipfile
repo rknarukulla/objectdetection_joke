@@ -10,6 +10,7 @@ ctransformers = "*"
 langchain = "*"
 torch = "*"
 pydantic = "*"
+flask = "*"
 
 [dev-packages]
 
