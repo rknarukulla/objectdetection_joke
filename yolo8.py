@@ -1,10 +1,11 @@
 import json
 
 import cv2
+import requests
 from flask import Flask, Response, jsonify, render_template
 from ultralytics import YOLO
 from ultralytics import YOLOWorld
-
+latest_detection_data = []  # Assuming it should be a list
 # Initialize Flask app and YOLO model
 app = Flask(__name__)
 # model= YOLO("yolov8n.pt")
@@ -68,6 +69,8 @@ def objects_info():
 def dashboard():
     # Render and serve the dashboard.html template
     return render_template('dashboard.html')
+
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8000, debug=True)
