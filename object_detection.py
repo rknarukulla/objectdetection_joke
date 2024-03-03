@@ -7,6 +7,7 @@ from ultralytics import YOLO
 from ultralytics import YOLOWorld
 
 import constants as c
+from llm_offline_api import get_names
 
 latest_detection_data = []  # Assuming it should be a list
 # Initialize Flask app and YOLO model
@@ -14,6 +15,7 @@ object_detection_app = Flask(__name__)
 model = YOLOWorld(c.MODEL_OBJECT_DETECTION)  # Load YOLOv8 model
 # Define custom classes
 # model.set_classes(["person with phone", "colors"])
+# print(model.names)
 
 
 def get_frame():
@@ -77,6 +79,14 @@ def objects_info():
 def dashboard():
     # Render and serve the dashboard.html template
     return render_template("dashboard.html")
+
+
+# TODO: fix the API error
+@object_detection_app.route("/generate_auto", methods=["GET"])
+def get_llm_response():
+
+    out = get_names()
+    return jsonify(out)
 
 
 if __name__ == "__main__":

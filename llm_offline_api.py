@@ -34,15 +34,26 @@ def generate_text():
     return jsonify({"response": response["text"]})
 
 
-@app.route("/generate_auto", methods=["POST"])
-def get_names():
-    response = requests.get("http://localhost:5000/names")
-    names_json = response.json()
+# @app.route("/generate_auto", methods=["GET"])
+def get_names(
+    objects_url="http://localhost:8000/data_feed",
+    llm_url="http://localhost:8000/generate",
+):
+    objects_response = requests.get(objects_url)
+    llm_url = requests.get(llm_url)
+    names_json = objects_response.json()
 
-    context = data.get("context")
+    context = (
+        f"Observations are given as json where the key is name and value is count of items or persons. "
+        f"The json is {names_json}. Use this context as for surrounding environment",
+    )
 
-    # Add names JSON to context
-    context += "\n\n" + names_json
+    question = "Tell a joke to the audience"
+
+    json_input = {"context": context, "question": question}
+    # call llm generate api
+    response = requests.post(url=llm_url, json=json_input)
+    return jsonify({"response": response.json()})
 
 
 @app.route("/health")
