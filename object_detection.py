@@ -5,13 +5,16 @@ import requests
 from flask import Flask, Response, jsonify, render_template
 from ultralytics import YOLO
 from ultralytics import YOLOWorld
+
+import constants as c
+
 latest_detection_data = []  # Assuming it should be a list
 # Initialize Flask app and YOLO model
-app = Flask(__name__)
-# model= YOLO("yolov8n.pt")
-model = YOLOWorld('yolov8s-world.pt')  # Load YOLOv8 model
+object_detection_app = Flask(__name__)
+model = YOLOWorld(c.MODEL_OBJECT_DETECTION)  # Load YOLOv8 model
 # Define custom classes
 # model.set_classes(["person with phone", "colors"])
+
 
 def get_frame():
     global latest_detection_data
@@ -29,30 +32,34 @@ def get_frame():
         frame_with_detections = results[0].plot()
 
         # Encode the frame to JPEG
-        ret, buffer = cv2.imencode('.jpg', frame_with_detections)
+        ret, buffer = cv2.imencode(".jpg", frame_with_detections)
         frame_bytes = buffer.tobytes()
 
         # # Yield the frame
 
-        yield (b'--frame\r\n'
-               b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
+        yield (
+            b"--frame\r\n"
+            b"Content-Type: image/jpeg\r\n\r\n" + frame_bytes + b"\r\n"
+        )
 
     cap.release()
 
 
-@app.route('/video_feed')
+@object_detection_app.route("/video_feed")
 def video_feed():
     # Stream the video with detections
-    return Response(get_frame(), mimetype='multipart/x-mixed-replace; boundary=frame')
+    return Response(
+        get_frame(), mimetype="multipart/x-mixed-replace; boundary=frame"
+    )
 
 
-@app.route('/data_feed')
+@object_detection_app.route("/data_feed")
 def data_feed():
     global latest_detection_data
     return jsonify(latest_detection_data)
 
 
-@app.route('/names')
+@object_detection_app.route("/names")
 def objects_info():
     global latest_detection_data
     names = {}
@@ -65,12 +72,12 @@ def objects_info():
 
     return jsonify(names)
 
-@app.route('/')
+
+@object_detection_app.route("/")
 def dashboard():
     # Render and serve the dashboard.html template
-    return render_template('dashboard.html')
+    return render_template("dashboard.html")
 
 
-
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8000, debug=True)
+if __name__ == "__main__":
+    object_detection_app.run(host="0.0.0.0", port=8000, debug=True)
