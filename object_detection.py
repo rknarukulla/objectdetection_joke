@@ -1,93 +1,65 @@
 import json
 
 import cv2
-import requests
-from flask import Flask, Response, jsonify, render_template
-from ultralytics import YOLO
+from flask import Response, jsonify
 from ultralytics import YOLOWorld
 
 import constants as c
-from llm_offline_api import get_names
-
-latest_detection_data = []  # Assuming it should be a list
-# Initialize Flask app and YOLO model
-object_detection_app = Flask(__name__)
-model = YOLOWorld(c.MODEL_OBJECT_DETECTION)  # Load YOLOv8 model
-# Define custom classes
-# model.set_classes(["person with phone", "colors"])
-# print(model.names)
+from utils import format_names
 
 
-def get_frame():
-    global latest_detection_data
-    cap = cv2.VideoCapture(0)
+class ObjectDetection:
 
-    while True:
-        ret, frame = cap.read()
-        if not ret:
-            break
+    def __init__(self):
+        self.latest_detection_data = []
+        self.model = YOLOWorld(c.MODEL_OBJECT_DETECTION)  # Load YOLOv8 model
+        # Define custom classes
+        # model.set_classes(["person with phone", "colors"])
+        # print(model.names)
 
-        # Perform detection
-        results = model(frame)
-        latest_detection_data = json.loads(results[0].tojson())
-        # Render detections on the frame
-        frame_with_detections = results[0].plot()
+    def get_frame(self):
+        # global latest_detection_data
+        cap = cv2.VideoCapture(0)
 
-        # Encode the frame to JPEG
-        ret, buffer = cv2.imencode(".jpg", frame_with_detections)
-        frame_bytes = buffer.tobytes()
+        while True:
+            ret, frame = cap.read()
+            if not ret:
+                break
 
-        # # Yield the frame
+            # Perform detection
+            results = self.model(frame)
+            self.latest_detection_data = json.loads(results[0].tojson())
+            # Render detections on the frame
+            frame_with_detections = results[0].plot()
 
-        yield (
-            b"--frame\r\n"
-            b"Content-Type: image/jpeg\r\n\r\n" + frame_bytes + b"\r\n"
+            # Encode the frame to JPEG
+            ret, buffer = cv2.imencode(".jpg", frame_with_detections)
+            frame_bytes = buffer.tobytes()
+
+            # # Yield the frame
+
+            yield (
+                b"--frame\r\n"
+                b"Content-Type: image/jpeg\r\n\r\n" + frame_bytes + b"\r\n"
+            )
+
+        cap.release()
+
+        #
+
+    def video_feed(self):
+
+        # Stream the video with detections
+        return Response(
+            self.get_frame(),
+            mimetype="multipart/x-mixed-replace; boundary=frame",
         )
 
-    cap.release()
+    def data_feed(self):
 
+        return jsonify(self.latest_detection_data)
 
-@object_detection_app.route("/video_feed")
-def video_feed():
-    # Stream the video with detections
-    return Response(
-        get_frame(), mimetype="multipart/x-mixed-replace; boundary=frame"
-    )
+    def objects_info(self):
+        names = format_names(self.latest_detection_data)
 
-
-@object_detection_app.route("/data_feed")
-def data_feed():
-    global latest_detection_data
-    return jsonify(latest_detection_data)
-
-
-@object_detection_app.route("/names")
-def objects_info():
-    global latest_detection_data
-    names = {}
-    for obj in latest_detection_data:
-        name = obj["name"]
-        if names.get(name) is None:
-            names[name] = 1
-        else:
-            names[name] += 1
-
-    return jsonify(names)
-
-
-@object_detection_app.route("/")
-def dashboard():
-    # Render and serve the dashboard.html template
-    return render_template("dashboard.html")
-
-
-# TODO: fix the API error
-@object_detection_app.route("/generate_auto", methods=["GET"])
-def get_llm_response():
-
-    out = get_names()
-    return jsonify(out)
-
-
-if __name__ == "__main__":
-    object_detection_app.run(host="0.0.0.0", port=8000, debug=True)
+        return jsonify(names)
