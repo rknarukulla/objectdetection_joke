@@ -8,3 +8,8 @@ This application uses objects detected by the object detection model as a contex
 
 - `app.py` is the main application to run.
 - Please sure to download a quantized Mistral model and update it's path in the `constants.py` file.
+
+
+## Current issues
+
+- The LLM is taking long time to respond in the local machine. Need to fix the API response time.
