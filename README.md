@@ -7,7 +7,7 @@ This application uses objects detected by the object detection model as a contex
 - It uses YOLO world model for objection and Mistral LLM for the joke generation.
 
 - `app.py` is the main application to run.
-- Please sure to download a quantized Mistral model and update it's path in the `constants.py` file.
+- Please download a quantized Mistral model and update its path in the `constants.py` file.
 
 
 ## Current issues
