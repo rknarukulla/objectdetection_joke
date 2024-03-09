@@ -1,3 +1,6 @@
+import os
+from pathlib import Path
+
 from langchain.chains import LLMChain
 from langchain_community.llms.ctransformers import CTransformers
 from langchain_core.prompts import PromptTemplate
